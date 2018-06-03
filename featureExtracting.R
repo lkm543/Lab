@@ -1,6 +1,7 @@
 #Q: Transfer from Hospital day?
 #Q: ICU in 30 days? or exceed 30?
 #Remove all variables
+setwd("D:/Dropbox/LKM/Laboratory/Lab")
 cat("\014")  
 rm(list=ls(all=TRUE))
 #options(warn=-1)
@@ -127,6 +128,7 @@ Diagnosis_HealthCare_2[3] <- lapply(Diagnosis_HealthCare_2[3],function(x){as.POS
 #Many!!
 Diagnosis_HealthCare_3_Temp <- data.frame(CHARTNO2 = c(), DIAGNOSISCODE = c(),CREATEDATETIME= c())
 for (i in 1:nrow(Diagnosis_HealthCare_3)){
+  #print(i)
   chart <- Diagnosis_HealthCare_3[i,1]
   time <- Diagnosis_HealthCare_3[i,25]
   time <- as.POSIXct(as.character(time),format='%m/%d/%Y')
@@ -139,6 +141,7 @@ for (i in 1:nrow(Diagnosis_HealthCare_3)){
     }
   }
   Diagnosis_HealthCare_3_Temp2 <- data.frame(CHARTNO2 = chart, DIAGNOSISCODE = t(Diagnosis_HealthCare_3[i,5:(4+index-1)]),CREATEDATETIME= time)
+  print(Diagnosis_HealthCare_3_Temp2)
   names(Diagnosis_HealthCare_3_Temp2)<-c("CHARTNO2","DIAGNOSISCODE", "CREATEDATETIME")
   #print(Diagnosis_HealthCare_3_Temp2)
   Diagnosis_HealthCare_3_Temp <- rbind(Diagnosis_HealthCare_3_Temp,Diagnosis_HealthCare_3_Temp2)
@@ -201,7 +204,7 @@ for (i in 1:nrow(Diagnosis_Procedure_4)){
   chart <- Diagnosis_Procedure_4[i,1]
   time <- Diagnosis_Procedure_4[i,25]
   time <- as.POSIXct(as.character(time),format='%m/%d/%Y')
-  print(i)
+  #print(i)
   index = 0
   for (j in 1:20){
     if (Diagnosis_Procedure_4[i,j+4]=='NULL'){
@@ -661,14 +664,13 @@ for (i in 1:nrow(labelOrigin)){
       if(diffCCIDisease>=0 && diffCCIDisease<=365){
         OriginICD <- toString(tempCCIResult_1[CCIindex,2])
         OriginICD <- gsub('\\.','',OriginICD)
-        test_result <- is.na(pmatch(t(CCIStandard[2]),OriginICD))
-        if(!all(test_result)){
-          # Calculate CCI,for it is in the transfer table
-          Index <- match(FALSE,test_result)
-          if(!Catagory[CCIStandard[Index,5]]){
-            CCI1 <- CCI1 + CCIStandard[Index,1]
-            Catagory[CCIStandard[Index,5]] <- TRUE
-            CCIData1 <- paste(CCIData1,CCIStandard[Index,4],"(",CCIStandard[Index,1],")",";")
+        for(CCI_Index in 1:nrow(CCIStandard)){
+          if(grepl(CCIStandard[CCI_Index,3], OriginICD, ignore.case = TRUE)||grepl(CCIStandard[CCI_Index,2], OriginICD, ignore.case = TRUE)){
+            if(!Catagory[CCIStandard[CCI_Index,5]]){
+              CCI1 <- CCI1 + CCIStandard[CCI_Index,1]
+              Catagory[CCIStandard[CCI_Index,5]] <- TRUE
+              CCIData1 <- paste(CCIData1,CCIStandard[CCI_Index,4],"(",CCIStandard[CCI_Index,1],")",";")
+            }
           }
         }
       }
@@ -678,6 +680,7 @@ for (i in 1:nrow(labelOrigin)){
   
   Catagory <- matrix(FALSE, nrow = 1, ncol = 17)
   CCIData2 <- ""
+  
   if(nrow(tempCCIResult_2)>0){
     for(CCIindex in 1:nrow(tempCCIResult_2)){
       CCIDate <- as.POSIXct(tempCCIResult_2[CCIindex,4],format = "%Y/%m/%d %H:%M:%S")
@@ -686,22 +689,21 @@ for (i in 1:nrow(labelOrigin)){
       if(diffCCIDisease>=0 && diffCCIDisease<=365){
         OriginICD <- toString(tempCCIResult_2[CCIindex,2])
         OriginICD <- gsub('\\.','',OriginICD)
-        test_result <- is.na(pmatch(t(CCIStandard[2]),OriginICD))
-        if(!all(test_result)){
-          # Calculate CCI,for it is in the transfer table
-          Index <- match(FALSE,test_result)
-          if(!Catagory[CCIStandard[Index,5]]){
-            CCI2 <- CCI2 + CCIStandard[Index,1]
-            Catagory[CCIStandard[Index,5]] <- TRUE
-            CCIData2 <- paste(CCIData2,CCIStandard[Index,4],"(",CCIStandard[Index,1],")",";")
+        for(CCI_Index in 1:nrow(CCIStandard)){
+          if(grepl(CCIStandard[CCI_Index,3], OriginICD, ignore.case = TRUE)||grepl(CCIStandard[CCI_Index,2], OriginICD, ignore.case = TRUE)){
+            if(!Catagory[CCIStandard[CCI_Index,5]]){
+              CCI2 <- CCI2 + CCIStandard[CCI_Index,1]
+              Catagory[CCIStandard[CCI_Index,5]] <- TRUE
+              CCIData2 <- paste(CCIData2,CCIStandard[CCI_Index,4],"(",CCIStandard[CCI_Index,1],")",";")
+            }
           }
         }
       }
     }
   }
   
-  print(CCI1)
-  print(CCI2)
+  #print(CCI1)
+  #print(CCI2)
   
   #Colonization
   Colonization<-FALSE
@@ -1019,6 +1021,7 @@ for (i in 1:nrow(labelOrigin)){
   Drug7_Steroid_DOT2 <- DOT2[7]
   
   Drug8_TPN_DOT2 <- DOT2_TPN[1]
+  #print(DOT2_TPN)
   #Diagnosis
   AcutePancreatitis = FALSE
   GastrointestinalPerforation = FALSE
