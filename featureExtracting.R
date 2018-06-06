@@ -368,6 +368,11 @@ for (i in 1:nrow(labelOrigin)){
   bactPersistent <- as.character(labelOrigin[i,6])
   bactPolymicrobial <- as.character(labelOrigin[i,7])
   history <- as.character(labelOrigin[i,8])
+  SAMPLINGDATECHAR <- as.character(labelOrigin[i,11])
+  SAMPLINGDATECHAR <- as.POSIXct(SAMPLINGDATECHAR,format='%Y%m%d %H:%M')
+  INDATE <- as.character(labelOrigin[i,12])
+  INDATE <- as.Date(INDATE,format='%Y/%m/%d')
+  EMGACCOUNTIDSE2 <- as.character(labelOrigin[i,13])
   historyArray <- strsplit(history[1],";")
   diseaseDate <- as.POSIXct(historyArray[[1]][2],format='%Y%m%d %H:%M')
   
@@ -425,26 +430,30 @@ for (i in 1:nrow(labelOrigin)){
       }
     }
   }
+  
+  hospitalizationDay <- as.numeric(difftime(SAMPLINGDATECHAR , INDATE , tz, units = c("days")))
   #print(hospitalizationDay)
   
   #Emergency
   emergencyNow <- FALSE
   emergencyDataNow <- ""
   
-  ind_array <- which(!is.na(match(emergencyOrigin$CHARTNO2, chartNO)))
+  if(EMGACCOUNTIDSE2!='null')
+    emergencyNow <- TRUE
+  #ind_array <- which(!is.na(match(emergencyOrigin$CHARTNO2, chartNO)))
   
-  if(length(ind_array)>0){
-    for (j in seq(1, length(ind_array))){
-      index <- ind_array[j]
-      #print(index)
-      emergencyDate <- as.Date(emergencyOrigin$COMECLINICDATE[index],format='%m/%d/%Y')
-      diffemg <- as.numeric(difftime(diseaseDate, emergencyDate, tz, units = c("days")))
-      if(diffemg <= 7 && diffemg > 0){
-        emergencyNow <- TRUE
-        emergencyDataNow <- paste(emergencyDataNow,as.character(emergencyDate),';')
-      }
-    }
-  }
+  #if(length(ind_array)>0){
+  #  for (j in seq(1, length(ind_array))){
+  #    index <- ind_array[j]
+  #    #print(index)
+  #    emergencyDate <- as.Date(emergencyOrigin$COMECLINICDATE[index],format='%m/%d/%Y')
+  #    diffemg <- as.numeric(difftime(diseaseDate, emergencyDate, tz, units = c("days")))
+  #    if(diffemg <= 7 && diffemg > 0){
+  #      emergencyNow <- TRUE
+  #      emergencyDataNow <- paste(emergencyDataNow,as.character(emergencyDate),';')
+  #    }
+  #  }
+  #}
   
   #ICU Stay
   ICUStayDays <- 0
@@ -511,7 +520,8 @@ for (i in 1:nrow(labelOrigin)){
       index <- ind_array[j]
       inDate <- as.Date(transferHospitalOrigin$INDATE[index],format='%m/%d/%Y')
       
-      diffIn <- as.numeric(difftime(diseaseDate, inDate, tz, units = c("days")))
+      diffIn <- as.numeric(difftime(INDATE, inDate, tz, units = c("days")))
+      #diffIn <- as.numeric(difftime(diseaseDate, inDate, tz, units = c("days")))
       
       if(diffIn <= 7 && diffIn >= 0){
         transferHospital <- TRUE
@@ -664,12 +674,12 @@ for (i in 1:nrow(labelOrigin)){
       if(diffCCIDisease>=0 && diffCCIDisease<=365){
         OriginICD <- toString(tempCCIResult_1[CCIindex,2])
         OriginICD <- gsub('\\.','',OriginICD)
-        for(CCI_Index in 1:nrow(CCIStandard)){
-          if(grepl(CCIStandard[CCI_Index,3], OriginICD, ignore.case = TRUE)||grepl(CCIStandard[CCI_Index,2], OriginICD, ignore.case = TRUE)){
-            if(!Catagory[CCIStandard[CCI_Index,5]]){
-              CCI1 <- CCI1 + CCIStandard[CCI_Index,1]
-              Catagory[CCIStandard[CCI_Index,5]] <- TRUE
-              CCIData1 <- paste(CCIData1,CCIStandard[CCI_Index,4],"(",CCIStandard[CCI_Index,1],")",";")
+        for(CCI_Index2 in 1:nrow(CCIStandard)){
+          if(grepl(CCIStandard[CCI_Index2,3], OriginICD, ignore.case = TRUE)||grepl(CCIStandard[CCI_Index2,2], OriginICD, ignore.case = TRUE)){
+            if(!Catagory[CCIStandard[CCI_Index2,5]]){
+              CCI1 <- CCI1 + CCIStandard[CCI_Index2,1]
+              Catagory[CCIStandard[CCI_Index2,5]] <- TRUE
+              CCIData1 <- paste(CCIData1,CCIStandard[CCI_Index2,4],"(",CCIStandard[CCI_Index2,1],")",";")
             }
           }
         }
@@ -689,12 +699,12 @@ for (i in 1:nrow(labelOrigin)){
       if(diffCCIDisease>=0 && diffCCIDisease<=365){
         OriginICD <- toString(tempCCIResult_2[CCIindex,2])
         OriginICD <- gsub('\\.','',OriginICD)
-        for(CCI_Index in 1:nrow(CCIStandard)){
-          if(grepl(CCIStandard[CCI_Index,3], OriginICD, ignore.case = TRUE)||grepl(CCIStandard[CCI_Index,2], OriginICD, ignore.case = TRUE)){
-            if(!Catagory[CCIStandard[CCI_Index,5]]){
-              CCI2 <- CCI2 + CCIStandard[CCI_Index,1]
-              Catagory[CCIStandard[CCI_Index,5]] <- TRUE
-              CCIData2 <- paste(CCIData2,CCIStandard[CCI_Index,4],"(",CCIStandard[CCI_Index,1],")",";")
+        for(CCI_Index2 in 1:nrow(CCIStandard)){
+          if(grepl(CCIStandard[CCI_Index2,3], OriginICD, ignore.case = TRUE)||grepl(CCIStandard[CCI_Index2,2], OriginICD, ignore.case = TRUE)){
+            if(!Catagory[CCIStandard[CCI_Index2,5]]){
+              CCI2 <- CCI2 + CCIStandard[CCI_Index2,1]
+              Catagory[CCIStandard[CCI_Index2,5]] <- TRUE
+              CCIData2 <- paste(CCIData2,CCIStandard[CCI_Index2,4],"(",CCIStandard[CCI_Index2,1],")",";")
             }
           }
         }
